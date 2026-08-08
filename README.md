@@ -16,4 +16,4 @@ name="[REPO NAME]"
 - Optionally add a `tag=` line to set a custom tag name. 
 - Config files are written in **bash syntax**.
 ## Planned features
-[ ] Multiple architectures
+- [ ] Multiple architectures
