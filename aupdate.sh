@@ -13,7 +13,7 @@ varset() {
 }
 
 if ! command -v git || ! command -v curl || ! command -v jq || ! command -v cmake || ! command -v cpack || ! command -v reprepro; then
-	printf "Requires working ready-to-build 'cmake', 'cpack', 'git', 'jq', 'reprepro' and 'curl' to be in path"
+	printf "Requires working ready-to-build 'cmake', 'cpack', 'git', 'jq', 'reprepro' and 'curl' to be in path\n"
 	exit
 fi
 
@@ -31,26 +31,30 @@ for repo in "$repos_dir/"*; do
 		oldcommit="$(cat "$data_dir/$(basename "$repo")_last_update")"
 	fi
 	newcommit="$(curl -s "https://api.github.com/repos/$owner/$name/git/refs/tags/$tagname" | jq .object.sha)"
-	printf "DEBUG: New: %s, Old: %s" "$newcommit" "$oldcommit"
+	printf "DEBUG: New: %s, Old: %s\n" "$newcommit" "$oldcommit"
 
 	if [[ "$newcommit" == "null" || -z "$newcommit" ]]; then
-		printf "ERROR: Couldn't get commit..."
+		printf "ERROR: Couldn't get commit...\n"
 		continue
 	fi
 	if [[ "$newcommit" == "$oldcommit" ]]; then
-		printf "Repo %s unchanged, skipping" "$repo"
+		printf "Repo %s unchanged, skipping\n" "$repo"
 		continue
 	fi
 	old_dir="$PWD"
 	repodir="$data_dir/repos/$repo"
 	mkdir -p "$repodir"
 	cd "$repodir"
-	if git --is-inside-work-tree 1>/dev/null 2>&1; then
-		git pull
+	if git rev-parse --is-inside-work-tree 1>/dev/null 2>&1; then
+		printf "Switching to origin/HEAD\n"
+		git fetch
+		git fetch --tags --force
+		git switch origin/HEAD --detach
 	else
 		git clone https://www.github.com/"$owner"/"$name" "$repodir"
 	fi
-	git switch "$newcommit" --detach
+	printf "Switching to new commit, SHA: %s\n" "$newcommit"
+	git switch "$(printf "%s" "$newcommit" | tr -d "\"")" --detach
 	cmake -S . -DCPACK_PACKAGE_FILE_NAME=package -B build
 	cmake --build build
 	cd build
