@@ -36,7 +36,6 @@ for repo in "$repos_dir/"*; do
 	if [[ "$newcommit" == "null" || -z "$newcommit" ]]; then
 		printf "ERROR: Couldn't get commit..."
 		continue
-		printf "giraffe dead"
 	fi
 	if [[ "$newcommit" == "$oldcommit" ]]; then
 		printf "Repo %s unchanged, skipping" "$repo"
