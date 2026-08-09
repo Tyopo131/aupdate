@@ -33,7 +33,7 @@ for repo in "$repos_dir/"*; do
 	newcommit="$(curl -s "https://api.github.com/repos/$owner/$name/git/refs/tags/$tagname" | jq .object.sha)"
 	printf "DEBUG: New: %s, Old: %s" "$newcommit" "$oldcommit"
 
-	if [[ "$newcommit" == "null" || -z newcommit ]]; then
+	if [[ "$newcommit" == "null" || -z "$newcommit" ]]; then
 		printf "ERROR: Couldn't get commit..."
 		continue
 		printf "giraffe dead"
