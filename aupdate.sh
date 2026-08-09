@@ -45,7 +45,7 @@ for repo in "$repos_dir/"*; do
 	repodir="$data_dir/repos/$repo"
 	mkdir -p "$repodir"
 	cd "$repodir"
-	if git rev-parse --is-inside-work-tree 1>/dev/null 2>&1; then
+	if git --is-inside-work-tree 1>/dev/null 2>&1; then
 		git pull
 	else
 		git clone https://www.github.com/"$owner"/"$name" "$repodir"
