@@ -8,10 +8,30 @@ shopt -p globstar
 
 mkdir -p "$repos_dir" "$data_dir/pkg" "$repo_dir"
 atleastone=1
+origin_dir="$(realpath "./")"
+
 varset() {
 	! [[ -z ${!1+a} ]]
 }
-
+build() {
+	local repo="$1"
+	if ! [[ -z "$2" ]]; then
+		printf "Building with toolchain. RPFrom: %s\n" "$(realpath_from $origin_dir $2)"
+		local toolchain="-DCMAKE_TOOLCHAIN_FILE=$(realpath_from "$origin_dir" "$2")"
+	else
+		local toolchain=""
+	fi
+	printf "Using toolchain: %s\n" "$toolchain"
+	cmake -S . -DCPACK_PACKAGE_FILE_NAME=package -B build "$toolchain"
+	cmake --build build
+	cd build
+	cpack
+	mv ./package.deb "$data_dir/pkg/$(basename "$repo")-$(basename "$tc_parsed")"
+	cd ..
+}
+realpath_from() {
+	(cd "$1" && realpath "$2")
+}
 if ! command -v git || ! command -v curl || ! command -v jq || ! command -v cmake || ! command -v cpack || ! command -v reprepro; then
 	printf "Requires working ready-to-build 'cmake', 'cpack', 'git', 'jq', 'reprepro' and 'curl' to be in path\n"
 	exit
@@ -27,6 +47,7 @@ for repo in "$repos_dir/"*; do
 	tagname="${tag:-auto-update-apt-repo}"
 	suite="${suite:-untested}"
 	oldcommit=""
+	usedefaulttc="${use_default_toolchain:-1}"
 	if [[ -f "$data_dir/$(basename "$repo")_last_update" ]]; then
 		oldcommit="$(cat "$data_dir/$(basename "$repo")_last_update")"
 	fi
@@ -56,11 +77,13 @@ for repo in "$repos_dir/"*; do
 	fi
 	printf "Switching to new commit, SHA: %s\n" "$newcommit"
 	git switch "$(printf "%s" "$newcommit" | tr -d "\"")" --detach
-	cmake -S . -DCPACK_PACKAGE_FILE_NAME=package -B build
-	cmake --build build
-	cd build
-	cpack
-	mv ./package.deb "$data_dir/pkg/$(basename "$repo")"
+	for tc in "${toolchains[@]}"; do
+		build "$repo" "$tc"
+		cd "$old_dir"
+	done
+	if [[ "$usedefaulttc" -gt 0 ]]; then
+		build "$repo"
+	fi
 	printf "%s" "$newcommit" > "$data_dir/$(basename "$repo")_last_update"
 	cd "$old_dir"
 	atleastone=0
