@@ -45,7 +45,8 @@ for repo in "$repos_dir/"*; do
 	repodir="$data_dir/repos/$repo"
 	mkdir -p "$repodir"
 	cd "$repodir"
-	if git rev-parse --is-inside-work-tree 1>/dev/null 2>&1; then
+	if [[ -d "$repodir/.git" ]]; then
+		echo "TOPLEVEL: $(git -C "$repodir" rev-parse --show-toplevel)"
 		printf "Switching to origin/HEAD\n"
 		git fetch
 		git fetch --tags --force
