@@ -24,7 +24,7 @@ build() {
 	local tc_name="$(basename "$2")"
 	printf "Using toolchain: %s\n" "$toolchain"
 	cmake -S . -DCPACK_PACKAGE_FILE_NAME=package -B build-"$tc_name" "$toolchain"
-	cmake --build build
+	cmake --build build-"$tc_name"
 	cd build-"$tc_name"
 	cpack
 	mv ./package.deb "$data_dir/pkg/$(basename "$repo")-$tc_name"
