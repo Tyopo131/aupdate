@@ -21,12 +21,13 @@ build() {
 	else
 		local toolchain=""
 	fi
+	local tc_name="$(basename "$2")"
 	printf "Using toolchain: %s\n" "$toolchain"
-	cmake -S . -DCPACK_PACKAGE_FILE_NAME=package -B build "$toolchain"
+	cmake -S . -DCPACK_PACKAGE_FILE_NAME=package -B build-"$tc_name" "$toolchain"
 	cmake --build build
-	cd build
+	cd build-"$tc_name"
 	cpack
-	mv ./package.deb "$data_dir/pkg/$(basename "$repo")-$(basename "$tc_parsed")"
+	mv ./package.deb "$data_dir/pkg/$(basename "$repo")-$tc_name"
 	cd ..
 }
 realpath_from() {
@@ -79,7 +80,6 @@ for repo in "$repos_dir/"*; do
 	git switch "$(printf "%s" "$newcommit" | tr -d "\"")" --detach
 	for tc in "${toolchains[@]}"; do
 		build "$repo" "$tc"
-		cd "$old_dir"
 	done
 	if [[ "$usedefaulttc" -gt 0 ]]; then
 		build "$repo"
