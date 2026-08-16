@@ -5,7 +5,7 @@ data_dir="$(realpath "./updata")"
 repo_dir="$(realpath "./")"
 shopt -s nullglob
 shopt -p globstar
-
+rm -r "$data_dir/pkg"
 mkdir -p "$repos_dir" "$data_dir/pkg" "$repo_dir"
 atleastone=1
 origin_dir="$(realpath "./")"
